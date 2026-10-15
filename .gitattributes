@@ -1,0 +1,29 @@
+# ── Chuẩn hoá dòng ─────────────────────────────────────────
+# Lưu LF trong repo, Git tự chuyển theo hệ điều hành khi checkout.
+* text=auto
+
+# ── Tệp nhị phân (không đổi dòng, không diff theo dòng) ────
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.webp binary
+*.gif  binary
+*.ico  binary
+*.glb  binary
+*.gltf binary
+*.fbx  binary
+*.blend binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.zip  binary
+
+# ── Ngôn ngữ chính (để GitHub hiện đúng thống kê) ──────────
+*.jsx  text
+*.js   text
+*.css  text
+*.html text
+*.json text
+*.md   text
+*.mjs  text
+*.py   text

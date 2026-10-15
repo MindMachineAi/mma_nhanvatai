@@ -1,0 +1,35 @@
+# ── Node / Web ─────────────────────────────────────────────
+node_modules/
+web/dist/
+web/tools/_out/
+.vite/
+*.local
+
+# ── Python / API ───────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+
+# ── Bí mật & cấu hình ──────────────────────────────────────
+.env
+.env.*
+!.env.example
+*.log
+
+# ── Sản phẩm sinh ra (nhân vật, ảnh, GLB) ──────────────────
+api/data/library.json
+api/data/output/
+api/data/tmp/
+*.glb
+*.gltf
+*.fbx
+
+# ── Hệ điều hành / IDE ─────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.code-workspace

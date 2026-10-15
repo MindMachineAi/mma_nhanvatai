@@ -1,0 +1,23 @@
+{
+  "name": "nhanvatai-web",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "MMA NhanVatAI - Trinh tao nhan vat ao tu dong (Vite + React 19 + three.js)",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview --port 5173"
+  },
+  "dependencies": {
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "vite": "^8.0.10"
+  }
+}
