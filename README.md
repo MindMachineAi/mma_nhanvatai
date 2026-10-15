@@ -64,7 +64,9 @@ mma_nhanvatai/
 │  └─ preview.svg             # ảnh xem trước
 ├─ docs/
 │  ├─ KIEN_TRUC.md            # kiến trúc, hợp đồng dữ liệu spec, chiến lược kiểm thử
-│  └─ HUONG_DAN_SU_DUNG.md    # hướng dẫn dùng giao diện từng bước
+│  ├─ HUONG_DAN_SU_DUNG.md    # hướng dẫn dùng giao diện từng bước
+│  └─ TRIEN_KHAI_VERCEL.md    # cách khai báo & triển khai web lên Vercel
+├─ vercel.json                # cấu hình deploy (trỏ build vào thư mục web/)
 ├─ .env.example               # mẫu cấu hình API/Blender/AI
 ├─ .gitattributes / .gitignore
 └─ README.md
@@ -115,6 +117,28 @@ node tools/_out/smoke-ui.js              # 21 PASS
 Bộ số 3 kết xuất toàn bộ app bằng `react-dom/server` nên bắt được: prop truyền sai, thiếu
 export, `FIELD_OPTIONS` lệch với engine, lỗi sinh SVG chân dung, lỗi định dạng số… Thư mục
 `web/tools/_out/` là sản phẩm tạm của bộ test và **đã được bỏ qua trong git**.
+
+## Triển khai web lên Vercel
+
+Repo đã có sẵn [vercel.json](vercel.json) trỏ `install/build/output` vào thư mục `web/`, nên
+khi import repo tại [vercel.com](https://vercel.com) **không cần điền gì thêm**:
+
+| Ô cấu hình trong Vercel | Giá trị |
+| --- | --- |
+| Root Directory | *(để trống — gốc repo)* |
+| Install Command | `cd web && npm install` *(đọc từ `vercel.json`)* |
+| Build Command | `cd web && npm run build` *(đọc từ `vercel.json`)* |
+| Output Directory | `web/dist` *(đọc từ `vercel.json`)* |
+| Environment Variables | `VITE_API_BASE` — **tuỳ chọn**, xem ghi chú bên dưới |
+
+Ghi chú quan trọng: Vercel chỉ chạy được **web tĩnh**. Backend FastAPI (`api/`) — vốn cần
+Blender headless để dựng GLB — **không chạy được trên Vercel**, nên đừng đặt
+`VITE_API_BASE=http://127.0.0.1:8077` (với người xem, `127.0.0.1` là máy của chính họ). Bỏ
+trống biến này ⇒ web chạy chế độ offline đầy đủ (sinh nhân vật, 3D, chân dung SVG, thư viện,
+xuất JSON/GLB). Muốn dùng nút AI/Blender thì trỏ `VITE_API_BASE` tới một backend public.
+
+Hướng dẫn chi tiết (3 cách deploy, biến môi trường, xử lý sự cố):
+[docs/TRIEN_KHAI_VERCEL.md](docs/TRIEN_KHAI_VERCEL.md).
 
 ## Hợp đồng dữ liệu `spec` (tóm tắt)
 
