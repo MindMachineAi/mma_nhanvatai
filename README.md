@@ -350,17 +350,23 @@ thư viện dùng chung trên server.
 
 ## Triển khai lên Vercel
 
-Repo đã có sẵn [`vercel.json`](vercel.json) khai báo trỏ vào thư mục `web/` (vì gốc repo không
-có `package.json`), nên import repo là chạy được ngay:
+Gốc repo không có `package.json` (mã web nằm trong `web/`), nên repo có **hai** cấu hình build sẵn
+— chọn **đúng một**, đừng trộn:
 
-| Ô cấu hình trên Vercel | Giá trị |
+| Cấu hình | File dùng | Việc cần làm trên Vercel |
+| --- | --- | --- |
+| **A. Root Directory để trống** *(khuyến nghị)* | [`vercel.json`](vercel.json) | Để Root Directory trống; ba ô lệnh để mặc định — Vercel đọc `cd web && npm install`, `cd web && npm run build`, `web/dist` |
+| **B. Root Directory = `web`** | [`web/vercel.json`](web/vercel.json) | Điền Root Directory = `web` và **Reset** ba ô lệnh về mặc định (`npm install`, `npm run build`, `dist`) |
+
+| Ô cấu hình khác trên Vercel | Giá trị |
 | --- | --- |
-| Root Directory | *(để trống — gốc repo)* |
-| Install Command | `cd web && npm install` |
-| Build Command | `cd web && npm run build` |
-| Output Directory | `web/dist` |
+| Framework Preset | `Other` (A) · `Vite` (B) |
 | Environment Variables | `VITE_API_BASE` — **tuỳ chọn**, nên để trống |
 | Node.js Version | `22.x` (Vite 8 cần Node `^20.19.0 \|\| >=22.12.0`) |
+
+⚠️ Trộn A với B sẽ hỏng ngay bước cài đặt — lệnh `cd web && npm install` chạy *bên trong* `web/`
+nên log báo `sh: line 1: cd: web: No such file or directory`. Cách sửa 30 giây nằm ở mục
+*Xử lý sự cố* của [docs/TRIEN_KHAI_VERCEL.md](docs/TRIEN_KHAI_VERCEL.md).
 
 ```bash
 # hoặc dùng CLI
@@ -377,7 +383,7 @@ Hướng dẫn đầy đủ (3 cách deploy, biến môi trường, xử lý s�
 
 ## Cấu trúc thư mục
 
-Số dòng ghi kèm là số dòng thật của từng file (tổng **5.462 dòng** cho 35 file, chưa kể
+Số dòng ghi kèm là số dòng thật của từng file (tổng **5.503 dòng** cho 36 file, chưa kể
 `package-lock.json`):
 
 ```text
@@ -407,7 +413,7 @@ mma_nhanvatai/
 │  │  ├─ hooks/useLibrary.js     75  thư viện localStorage (200 bản ghi, slim + finalize)
 │  │  └─ main.jsx                12  điểm khởi động (không StrictMode — tránh 2 WebGL context)
 │  ├─ tools/smoke-ui.jsx        112  21 kiểm thử giao diện bằng renderToString
-│  ├─ index.html                 16  · vite.config.js 17 · package.json 23
+│  ├─ index.html 16 · vite.config.js 17 · package.json 23 · vercel.json 6
 ├─ tools/                     KIỂM THỬ + ASSET
 │  ├─ selftest3d.mjs            161  62 kiểm thử hình học 3D (headless, đo hộp bao)
 │  ├─ selftest.mjs              104  29 kiểm thử Character Engine
@@ -415,12 +421,12 @@ mma_nhanvatai/
 ├─ docs/
 │  ├─ KIEN_TRUC.md              211  kiến trúc, hợp đồng spec.threeD, chiến lược kiểm thử
 │  ├─ HUONG_DAN_SU_DUNG.md      143  hướng dẫn người dùng cuối từng bước
-│  ├─ TRIEN_KHAI_VERCEL.md      150  3 cách deploy, biến môi trường, xử lý sự cố
+│  ├─ TRIEN_KHAI_VERCEL.md      179  3 cách deploy, biến môi trường, xử lý sự cố
 │  └─ assets/banner.svg          76  banner của README (SVG, tự soạn)
 ├─ vercel.json                    6  khai báo build cho Vercel
 ├─ .env.example                  37  mẫu cấu hình API/Blender/AI
 ├─ .gitignore 35 · .gitattributes 29
-└─ README.md                    501  tài liệu này
+└─ README.md                    507  tài liệu này
 ```
 
 

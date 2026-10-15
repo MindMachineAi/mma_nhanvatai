@@ -3,6 +3,14 @@
 Tài liệu này hướng dẫn cách "khai báo" để Vercel build đúng thư mục `web/` và xuất bản web tĩnh.
 Đối tượng: người đã có quyền vào repo `MindMachineAi/mma_nhanvatai` trên GitHub.
 
+> ⚠️ **Chỉ chọn MỘT trong hai cấu hình, đừng trộn:**
+> **(A)** *Root Directory để trống* + `vercel.json` ở gốc repo — **khuyến nghị**, hoặc
+> **(B)** *Root Directory = `web`* + ba ô lệnh **Reset** về mặc định (repo đã có `web/vercel.json`).
+> Nếu Root Directory = `web` mà vẫn điền `cd web && …`, lệnh chạy *bên trong* `web/` nên không còn
+> thư mục `web` nào để vào và log báo đúng dòng đầu tiên:
+> `Running "install" command: cd web && npm install` → `sh: line 1: cd: web: No such file or directory`.
+> Cách sửa 30 giây: xem [mục 7](#7-xử-lý-sự-cố-thường-gặp).
+
 ## Điểm cần biết trước khi bắt đầu
 
 | Sự thật về repo này | Hệ quả khi deploy |
@@ -35,8 +43,8 @@ npm run preview   # mở http://localhost:4173 để xem bản build
    | --- | --- |
    | Project Name | `mma-nhanvatai` (hoặc tên bạn muốn → thành `https://<tên>.vercel.app`) |
    | Framework Preset | `Other` |
-   | **Root Directory** | *(để trống = gốc repo)* |
-   | Build and Output Settings | bấm mở, chọn **Override** rồi điền 3 dòng dưới |
+   | **Root Directory** | *(để trống = gốc repo)* — **không** điền `web` ở đây; muốn thế thì dùng Cách B |
+   | Build and Output Settings | bấm mở, chọn **Override** rồi điền 3 dòng dưới (chỉ đúng khi Root Directory để trống) |
    | Install Command | `cd web && npm install` |
    | Build Command | `cd web && npm run build` |
    | Output Directory | `web/dist` |
@@ -48,20 +56,36 @@ npm run preview   # mở http://localhost:4173 để xem bản build
    - mọi lần `git push` lên `main` → **Production Deployment**;
    - pull request / nhánh khác → **Preview Deployment** riêng.
 
-> Vercel ưu tiên cấu hình trong `vercel.json` hơn các ô trong giao diện. Muốn điều khiển hoàn
-> toàn bằng dashboard thì xoá `vercel.json` (xem Cách B).
+> `install / build / output` được Vercel đọc từ `vercel.json` của **project root** — tức gốc repo
+> khi Root Directory để trống. Riêng **Root Directory** chỉ đặt được trên dashboard hoặc CLI
+> (`vercel.json` không khai báo được), nên đây chính là chỗ dễ "trộn cấu hình" nhất: đặt
+> Root Directory = `web` rồi vẫn để lệnh `cd web && …` ⇒ hỏng ngay bước cài đặt, chuyển sang Cách B.
 
-## Cách B — Đặt Root Directory là `web/`
+## Cách B — Đặt Root Directory là `web`
 
-Cách này không dùng `vercel.json` ở gốc repo (Vercel chỉ đọc `vercel.json` ngay trong Root
-Directory, nên file ở gốc sẽ bị bỏ qua):
+Vercel đọc `vercel.json` **tại Root Directory**; vì thế repo có sẵn `web/vercel.json` cho trường
+hợp này (khi Root Directory = `web` thì `vercel.json` ở gốc repo không còn được dùng):
+
+```json
+{
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist"
+}
+```
 
 1. Làm như Cách A tới bước 3, nhưng điền **Root Directory = `web`** (bấm *Edit*).
-2. Vercel tự nhận Framework Preset = **Vite**, để mặc định:
+2. **Bắt buộc:** nếu ba ô *Install Command / Build Command / Output Directory* đang chứa
+   `cd web && …` hoặc `web/dist` (dấu vết của Cách A) thì bấm **Reset** từng ô về mặc định.
+   Vercel tự nhận Framework Preset = **Vite** và chạy lệnh **bên trong `web/`**:
    - Install Command: `npm install`
    - Build Command: `npm run build`
    - Output Directory: `dist`
-3. **Deploy**.
+3. **Deploy** (đảm bảo commit mới có `web/vercel.json` đã được push — xem Cách C nếu bạn deploy
+   bằng CLI).
+
+> Quên bước 2 thì log dừng ngay dòng đầu với `cd: web: No such file or directory`, đúng như lỗi bạn
+> đang đứng trong `web/` mà lại `cd web` thêm một lần.
 
 Chọn A hay B tuỳ sở thích; A giữ cấu hình trong repo (ai clone về cũng deploy được y hệt), B gọn
 hơn khi bạn chỉ muốn sửa trên giao diện web.
@@ -123,7 +147,9 @@ Kích thước bản build đo trên máy dev (để bạn biết thế nào là
 | Thông báo / triệu chứng | Nguyên nhân & cách sửa |
 | --- | --- |
 | `No Output Directory named "dist" found` | Bạn để Root Directory trống nhưng Output Directory chưa phải `web/dist` (hoặc ngược lại: Root = `web` mà lại điền `web/dist` → phải là `dist`) |
-| `sh: vite: not found` / `vite: command not found` | Install Command chưa trỏ vào `web/` → dùng `cd web && npm install` |
+| `Running "install" command: cd web && npm install` rồi `sh: line 1: cd: web: No such file or directory` | **Trộn Cách A với Cách B**: Root Directory đang là `web` (lệnh chạy *trong* `web/`) nhưng ô lệnh vẫn còn `cd web`. Sửa: hoặc **xoá Root Directory** (dùng `vercel.json` ở gốc), hoặc giữ `web` và bấm **Reset** ba ô lệnh về mặc định (đúng khi Root = `web`, cần commit có `web/vercel.json`) |
+| `No Output Directory named "web/dist" found` | Root Directory = `web` nhưng Output Directory vẫn là `web/dist` → phải là `dist` (và ngược lại: Root để trống thì phải là `web/dist`) |
+| `sh: vite: not found` / `vite: command not found` | Root Directory để trống nên phải cài & build trong `web/` → Install Command `cd web && npm install` (Cách A); nếu Root Directory = `web` thì để `npm install` và **Reset** ô này |
 | Build OK nhưng mở trang trắng | Thường do WebGL bị chặn (thử Chrome/Edge, bật hardware acceleration) hoặc asset 404 — xem Console/Network |
 | 3D không hiện, canvas trống | Kiểm tra GPU/driver; app cần WebGL2. Thử máy khác để loại trừ |
 | Đèn API đỏ, nút AI mờ | Web không gọi được backend: chưa đặt `VITE_API_BASE`, hoặc trỏ vào localhost (xem mục 5) |
@@ -144,7 +170,10 @@ Kích thước bản build đo trên máy dev (để bạn biết thế nào là
 
 ## Tóm tắt 3 dòng
 
-1. Repo đã có `vercel.json` → import repo trên Vercel, để **Root Directory trống**, bấm Deploy.
-2. `install/build/output` lần lượt là `cd web && npm install`, `cd web && npm run build`, `web/dist`.
+1. Chọn **một** cấu hình: Root Directory **trống** + `vercel.json` ở gốc repo *(khuyến nghị, Cách A)*,
+   hoặc Root Directory = `web` + **Reset** ba ô lệnh về mặc định (Cách B, repo đã có `web/vercel.json`).
+2. Tương ứng `install / build / output` là `cd web && npm install` · `cd web && npm run build` ·
+   `web/dist` — hoặc `npm install` · `npm run build` · `dist`.
 3. `VITE_API_BASE` để trống nếu chỉ dùng web tĩnh; backend Blender/AI phải nằm trên máy chủ khác.
+4. Gặp `cd: web: No such file or directory` = bạn đã trộn cấu hình; sửa theo [mục 7](#7-xử-lý-sự-cố-thường-gặp).
 
