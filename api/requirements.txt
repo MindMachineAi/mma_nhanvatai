@@ -1,0 +1,16 @@
+# ============================================================
+#  MMA NHANVATAI — backend FastAPI (bước 5 & 6 của lộ trình)
+#  Cài:  pip install -r api/requirements.txt
+#  Phiên bản ghi kèm là bản đã chạy thật trên máy dev (10/2026).
+# ============================================================
+
+fastapi==0.115.6        # web framework + tự sinh /docs
+uvicorn==0.34.0         # ASGI server: uvicorn main:app --port 8077
+httpx==0.28.1           # gọi Gemini / MeToken / Pollinations / DeepSeek
+pillow==11.0.0          # vẽ /api/portrait.png (không cần mạng)
+python-dotenv==1.0.1    # đọc .env ở gốc repo
+pydantic==2.10.4        # schema request/response (kèm fastapi)
+
+# Blender KHÔNG cài bằng pip — tải bản cài đặt sẵn:
+#   https://www.blender.org/download/  (đặt BLENDER_PATH trong .env nếu khác mặc định)
+# Backend gọi Blender headless: blender -b --python api/blender/build_character.py

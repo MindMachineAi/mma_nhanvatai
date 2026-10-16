@@ -114,19 +114,30 @@ thư viện không lưu ảnh và không chiếm dung lượng lớn.
   Unreal, Godot, Windows 3D Viewer…
 - **Tải SVG / PNG**: ảnh chân dung (xem mục 6).
 
-## 10. Bật backend API (tuỳ chọn — hiện chưa có trong repo)
+## 10. Bật backend API (tuỳ chọn — đã có trong repo ở `api/`)
 
-Khi thư mục `api/` được bổ sung (FastAPI, cổng `8077`):
+Web dùng được đầy đủ khi API tắt, nhưng bật lên thì có thêm: GLB dựng bằng **Blender có rig**,
+chân dung PNG nét dày, ảnh AI chất lượng cao và thư viện nhân vật trên server.
 
-1. Copy `.env.example` → `.env`, điền `GEMINI_API_KEY` hoặc `METOKEN_API_KEY` nếu có
-   (không điền vẫn dùng được Pollinations miễn phí), và `BLENDER_PATH` nếu Blender cài ở chỗ khác.
-2. Chạy server theo hướng dẫn trong `api/README.md` (dự kiến:
-   `cd api; uvicorn main:app --port 8077`).
-3. Quay lại app, bấm **Kiểm tra lại** ở header — chấm chuyển xanh **“API đã bật”**, nút
+1. Cài phụ thuộc Python (một lần):
+   ```bash
+   pip install -r api/requirements.txt
+   ```
+2. Copy `.env.example` → `.env` ở **gốc repo**, điền `GEMINI_API_KEY` hoặc `METOKEN_API_KEY` nếu có
+   (không điền vẫn dùng được Pollinations miễn phí), `DEEPSEEK_API_KEY` nếu muốn AI viết lại prompt,
+   và `BLENDER_PATH` nếu Blender cài ở chỗ khác.
+3. Chạy server **từ gốc repo**:
+   ```bash
+   python -m uvicorn api.main:app --port 8077
+   ```
+4. Quay lại app, bấm **Kiểm tra lại** ở header — chấm chuyển xanh **“API đã bật”**, nút
    **Dựng bằng Blender** và **Nâng cấp bằng AI** được mở khoá.
 
+Muốn nhân vật hiện ngay trong **Blender đang mở** (sửa tay, export thêm FBX/`.blend`) thì cài addon
+`api/blender_addon/mma_bridge.py` rồi bật cầu nối trong tab **MMA Bridge** (N ▸ Sidebar).
+
 Web dev gọi API ở `http://127.0.0.1:8077`; muốn đổi địa chỉ thì đặt biến `VITE_API_BASE`
-(xem `.env.example`).
+(xem `.env.example`). Chi tiết endpoint, biến môi trường và xử lý sự cố: **`api/README.md`**.
 
 ## 11. Mẹo & xử lý sự cố
 

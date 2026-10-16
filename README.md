@@ -19,8 +19,8 @@ nào, **không cần lưu ảnh, không cần server**.
 
 > **Toàn bộ phần lõi chạy offline trong trình duyệt:** sinh nhân vật, dựng model 3D bằng
 > three.js, vẽ chân dung SVG, thư viện nhân vật, nhập/xuất JSON, xuất GLB.
-> Backend FastAPI ở thư mục `api/` (Blender dựng GLB có rig + AI vẽ chân dung) là **lớp nâng
-> cấp tuỳ chọn, chưa có trong repo này** — khi tắt API, web vẫn dùng được đầy đủ.
+> Backend FastAPI ở [`api/`](api/) (Blender dựng GLB có rig, chân dung PNG/AI, thư viện trên
+> server) là **lớp nâng cấp tuỳ chọn** — không bật API thì web vẫn dùng được đầy đủ.
 
 | Ba con số | Ý nghĩa |
 | --- | --- |
@@ -166,9 +166,12 @@ spec.threeD       labels[]           description         prompt           voice 
    │                      └──▶ GLB (GLTFExporter, ngay trong trình duyệt)         │
    └──▶ portrait.js ──▶ SVG / PNG                                                  │
                                                                                    │
-   ── Lớp nâng cấp qua API (tuỳ chọn, chưa có trong repo) ───────────────────────────
-   api/ FastAPI ─┬─▶ Blender headless ──▶ GLB có rig
+   ── Lớp nâng cấp qua API: api/ (tuỳ chọn, có trong repo) ──────────────────────────
+   api/ FastAPI ─┬─▶ Blender headless ──▶ GLB có rig (19 xương)
+                 │     (hoặc addon cầu nối trong Blender đang mở)
+                 ├─▶ Pillow ──▶ chân dung PNG, không cần mạng
                  ├─▶ Gemini → MeToken → Pollinations ──▶ chân dung AI
+                 ├─▶ DeepSeek ──▶ viết lại prompt + nâng cấp hồ sơ
                  └─▶ thư viện nhân vật trên server
 ```
 
@@ -299,8 +302,9 @@ Chi tiết từng trường và cách các bộ dựng hình dùng chúng: **[do
 
 ## Kiểm thử
 
-Ba bộ kiểm thử chạy **không cần trình duyệt, không cần framework test** (chỉ Node + `assert`
-viết tay), tổng **112 kiểm tra**:
+Ba bộ kiểm thử web chạy **không cần trình duyệt, không cần framework test** (chỉ Node + `assert`
+viết tay) tổng **112 kiểm tra**, và backend có thêm **209 kiểm tra** Python chạy không cần mạng
+(trừ nhóm Blender — nhóm này dựng GLB thật):
 
 | Bộ | File | Số kiểm tra | Nội dung thật sự được kiểm |
 | --- | --- | --- | --- |
@@ -308,11 +312,14 @@ viết tay), tổng **112 kiểm tra**:
 | Hình học 3D | [`tools/selftest3d.mjs`](tools/selftest3d.mjs) | **62 PASS** | Dựng 3D headless rồi **đo hộp bao**: không có toạ độ `NaN`; > 25 mesh; bàn chân chạm sàn (`minY ≥ -0.002`); chiều cao khớp `heightM` (±7 cm); độ dày thân 0.15–0.6 m. Lặp qua **tất cả 12 kiểu tóc, 5 kiểu râu, 12 phụ kiện, 6 màu mắt, 12 bộ trang phục, 5 vóc dáng**; kiểm tư thế/animation; kiểm vóc dáng to hơn thì thân rộng hơn; **đo hiệu năng dựng 100 nhân vật** |
 | Giao diện | [`web/tools/smoke-ui.jsx`](web/tools/smoke-ui.jsx) | **21 PASS** | Kết xuất thật `App` + 5 panel bằng `renderToString`: App không ném lỗi, có đủ các khối chính và `<svg>` chân dung; mọi ô chọn ngoại hình đều có mặt; **mỗi panel kết xuất độc lập được**; SVG chân dung mở/đóng thẻ đúng, **không chứa `NaN`/`undefined`/`Infinity`**, nhúng đúng tên nhân vật; đổi phong cách ảnh ⇒ SVG khác |
 
+| API | [`api/selftest.py`](api/selftest.py) | **209 PASS** | 8 nhóm chạy qua `TestClient` (không cần bật uvicorn): đèn báo `/health` + `/`; `/api/engines` báo đúng Blender/key AI; **mọi lỗi spec đều là tiếng Việt**; PNG đúng magic và kích thước bị kẹp 128…2048; PNG cho **đủ 12 phụ kiện + 5 kiểu râu** (chính chỗ này bắt được lỗi Pillow `width` không phải số nguyên); thư viện: POST trùng `id` ⇒ **cập nhật** chứ không nhân bản, DELETE id lạ ⇒ 404; engine khi **chưa** cấu hình key ⇒ thông báo việc cần làm thay vì `KeyError`; cuối cùng **dựng GLB thật bằng Blender** rồi tự đọc lại file (1 mesh · 1 skin · 19 xương · bàn chân chạm sàn · chiều cao đúng công thức `figure.js` · `rig:false` thì không có skin) |
+
 Chạy toàn bộ (từ gốc repo):
 
 ```bash
 node tools/selftest.mjs        # → ═══ KẾT QUẢ: 29 PASS / 0 FAIL ═══
 node tools/selftest3d.mjs      # → ═══ KẾT QUẢ 3D: 62 PASS / 0 FAIL ═══
+python api/selftest.py         # → ═══ KẾT QUẢ API: 209 PASS / 0 FAIL ═══
 
 cd web && npx vite build --ssr tools/smoke-ui.jsx --outDir tools/_out --logLevel warn \
   && node tools/_out/smoke-ui.js   # → ═══ KẾT QUẢ UI: 21 PASS / 0 FAIL ═══
@@ -323,8 +330,14 @@ Ghi chú: repo hiện **chưa có** workflow CI — các bộ test được ch�
 
 ## Backend API tuỳ chọn
 
-Web đã sẵn hợp đồng gọi API tại [`web/src/api.js`](web/src/api.js). Backend dự kiến nằm ở
-`api/` (FastAPI, cổng `8077`) và **chưa có trong repo này**:
+Web đã sẵn hợp đồng gọi API tại [`web/src/api.js`](web/src/api.js). Backend **đã có trong repo**
+ở [`api/`](api/) (FastAPI, cổng `8077`) — chạy chỉ với ba lệnh:
+
+```bash
+pip install -r api/requirements.txt              # fastapi, uvicorn, pillow, requests, python-dotenv
+python -m uvicorn api.main:app --port 8077       # chạy từ GỐC repo
+python api/selftest.py                           # 209 kiểm tra (dựng GLB thật nếu máy có Blender)
+```
 
 | Method | Endpoint | Body | Kết quả | Timeout phía web |
 | --- | --- | --- | --- | --- |
@@ -333,6 +346,7 @@ Web đã sẵn hợp đồng gọi API tại [`web/src/api.js`](web/src/api.js).
 | POST | `/api/portrait.png` | `{ spec, size }` | PNG (blob) — bản vẽ nét dày hơn SVG trong web | 30 s |
 | POST | `/api/glb` | `{ spec, ...options }` | GLB (blob) — Blender headless dựng model **có rig** | 300 s |
 | POST | `/api/portrait/ai` | `{ spec, ...options }` | `{ provider, imageUrl \| imageBase64, prompt }` | 180 s |
+| POST | `/api/ai/character` | `{ spec }` | `{ description, motto, prompt, traits }` — DeepSeek nâng cấp hồ sơ | – |
 | GET | `/api/library` | – | danh sách nhân vật trên server | 6 s |
 | POST | `/api/library` | `{ spec }` | bản ghi đã lưu | 8 s |
 | DELETE | `/api/library/{id}` | – | xoá 1 nhân vật trên server | 6 s |
@@ -346,6 +360,17 @@ bắt lỗi này và hiện toast, **không làm hỏng** các tính năng offli
 Đây là lý do dự án tách bạch: **web không phụ thuộc backend để hữu dụng**. Backend chỉ thêm ba
 thứ mà trình duyệt không làm được: rig chuyên nghiệp trong Blender, ảnh AI chất lượng cao và
 thư viện dùng chung trên server.
+
+**Hai cách nối với Blender.** Mặc định backend tự chạy Blender headless
+(`blender -b --factory-startup --python api/blender/build_character.py`) nên chạy tốt trên
+VPS/Docker không giao diện. Nếu muốn dựng nhân vật **ngay trong Blender đang mở**, hãy cài addon
+[`api/blender_addon/mma_bridge.py`](api/blender_addon/mma_bridge.py) — View3D ▸ **N** ▸ tab
+**MMA Bridge** ▸ *Bật cầu nối* (mặc định `127.0.0.1:9876`). Addon dùng **cùng** file dựng hình với
+chế độ headless nên hai đường ra cùng một nhân vật, đồng thời cố tình **không** nhận code Python
+tuỳ ý (chỉ allowlist 5 lệnh: `ping`, `scene_info`, `build_character`, `export_glb`,
+`viewport_png`) để mở socket mà vẫn an toàn.
+
+Chi tiết endpoint, 8 nhóm kiểm thử, biến môi trường và xử lý sự cố: **[api/README.md](api/README.md)**.
 
 
 ## Triển khai lên Vercel
@@ -383,8 +408,8 @@ Hướng dẫn đầy đủ (3 cách deploy, biến môi trường, xử lý s�
 
 ## Cấu trúc thư mục
 
-Số dòng ghi kèm là số dòng thật của từng file (tổng **5.503 dòng** cho 36 file, chưa kể
-`package-lock.json`):
+Số dòng ghi kèm là số dòng thật của từng file (tổng **5.503 dòng** cho 36 file web/tools/docs,
+cộng thêm **3.657 dòng Python** của backend `api/`, chưa kể `package-lock.json`):
 
 ```text
 mma_nhanvatai/
@@ -418,15 +443,30 @@ mma_nhanvatai/
 │  ├─ selftest3d.mjs            161  62 kiểm thử hình học 3D (headless, đo hộp bao)
 │  ├─ selftest.mjs              104  29 kiểm thử Character Engine
 │  └─ preview.svg                50  chân dung mẫu do portrait.js sinh ra (dùng trong README)
+├─ api/                       ★ BACKEND TUỲ CHỌN (FastAPI + Blender + AI) · Python
+│  ├─ main.py                  255  9 endpoint + CORS + exception handler tiếng Việt
+│  ├─ config.py                214  Settings: đọc .env, dò Blender, liệt kê provider AI
+│  ├─ library_store.py         111  thư viện nhân vật trên server (JSON, ghi an toàn)
+│  ├─ engines/                      BỐN ENGINE
+│  │  ├─ portrait_png.py       391  vẽ chân dung bằng Pillow (12 tóc · 5 râu · 12 phụ kiện)
+│  │  ├─ llm.py                258  DeepSeek: viết lại prompt ảnh, nâng cấp hồ sơ nhân vật
+│  │  ├─ ai_portrait.py        220  Gemini → MeToken → Pollinations, mỗi lớp có dự phòng
+│  │  └─ blender.py            175  chạy Blender headless, timeout, dọn tệp, đọc __MMA_RESULT__
+│  ├─ blender/build_character.py 841  script bpy: mesh theo figure.js + rig 19 xương + xuất GLB
+│  ├─ blender_addon/mma_bridge.py 525  addon cầu nối trong Blender (socket + allowlist + panel N)
+│  ├─ tools/glb_info.py        106  đọc GLB không cần Blender (chunk, skin, xương, hộp bao)
+│  ├─ selftest.py              550  209 kiểm thử API/engine/GLB thật (8 nhóm) · không cần mạng
+│  ├─ README.md                218  tài liệu backend: endpoint, 2 chế độ Blender, xử lý sự cố
+│  └─ requirements.txt          16  fastapi · uvicorn · pillow · requests · python-dotenv
 ├─ docs/
 │  ├─ KIEN_TRUC.md              211  kiến trúc, hợp đồng spec.threeD, chiến lược kiểm thử
 │  ├─ HUONG_DAN_SU_DUNG.md      143  hướng dẫn người dùng cuối từng bước
 │  ├─ TRIEN_KHAI_VERCEL.md      179  3 cách deploy, biến môi trường, xử lý sự cố
 │  └─ assets/banner.svg          76  banner của README (SVG, tự soạn)
 ├─ vercel.json                    6  khai báo build cho Vercel
-├─ .env.example                  37  mẫu cấu hình API/Blender/AI
+├─ .env.example                  57  mẫu cấu hình API/Blender/AI/DeepSeek
 ├─ .gitignore 35 · .gitattributes 29
-└─ README.md                    507  tài liệu này
+└─ README.md                    547  tài liệu này
 ```
 
 
@@ -456,16 +496,16 @@ mma_nhanvatai/
 | 2 | Giao diện 3 cột + 21 kiểm thử khói UI | ✅ xong |
 | 3 | Xuất GLB trực tiếp trong trình duyệt (`GLTFExporter`) + chân dung SVG/PNG offline | ✅ xong |
 | 4 | Triển khai web tĩnh lên Vercel (`vercel.json`) | ✅ xong |
-| 5 | Backend FastAPI: `/health`, `/api/engines`, `portrait.png`, `portrait/ai`, thư viện | ⏳ chưa có trong repo |
-| 6 | Blender headless: dựng GLB **có rig** từ `spec.threeD` | ⏳ chưa |
+| 5 | Backend FastAPI: `/health`, `/api/engines`, `portrait.png`, `portrait/ai`, thư viện | ✅ xong (9 endpoint, 209 kiểm thử) |
+| 6 | Blender headless: dựng GLB **có rig** từ `spec.threeD` (19 xương) + addon cầu nối trong Blender | ✅ xong |
 | 7 | Đọc hồ sơ bằng TTS theo `spec.voice` (ttsVoice / timbre / pitch / speed) | ⏳ chưa |
-| 8 | Đồng bộ thư viện web ↔ server hai chiều + CI chạy 112 kiểm thử | ⏳ chưa |
+| 8 | Đồng bộ thư viện web ↔ server hai chiều + CI chạy 112 + 209 kiểm thử | ⏳ chưa (mới có thư viện server 1 chiều) |
 
 ## FAQ
 
 **Tôi có cần backend không?**
 Không. Web sinh nhân vật, dựng 3D, vẽ chân dung, lưu thư viện và xuất GLB/JSON hoàn toàn trong
-trình duyệt. Backend chỉ thêm rig Blender, ảnh AI và thư viện dùng chung trên server.
+trình duyệt. Backend (thư mục `api/`) chỉ thêm rig Blender, ảnh AI và thư viện dùng chung trên server.
 
 **Vì sao cùng seed lại ra cùng nhân vật?**
 Vì engine dùng PRNG có seed (`xmur3` + `mulberry32`) thay cho `Math.random`, và mọi lựa chọn

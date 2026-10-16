@@ -19,7 +19,7 @@ Tài liệu này hướng dẫn cách "khai báo" để Vercel build đúng thư
 | Vite cấu hình `outDir: 'dist'` (tính theo `web/`) | Thư mục xuất bản là **`web/dist`** khi chạy build từ gốc repo |
 | Ứng dụng chỉ có **một route** (`index.html` → `main.jsx`, không dùng `react-router`) | **Không cần** rewrite SPA; chỉ thêm `"rewrites"` nếu sau này bạn thêm router |
 | `web/dist/` **không** được commit (nằm trong `.gitignore`) | Bình thường — Vercel tự chạy `npm run build` trên máy chủ của họ |
-| Backend FastAPI (`api/`) **chưa có trong repo**, và bản kế hoạch cần **Blender headless** | Vercel **không** chạy được Blender ⇒ chỉ deploy web; xem mục 5 |
+| Backend FastAPI (`api/`) **nằm trong repo** nhưng cần **Blender headless** | Vercel **không** chạy được Blender ⇒ chỉ deploy web ở Vercel, backend đặt trên VPS/Docker; xem mục 5 |
 | Web đọc biến môi trường **lúc build** (`import.meta.env.VITE_API_BASE`) | Đổi biến phải **redeploy** mới có tác dụng (không phải tự động như biến runtime) |
 
 Kiểm tra nhanh trên máy trước khi deploy (phải chạy được, đây là điều Vercel sẽ làm lại):

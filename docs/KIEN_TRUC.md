@@ -158,7 +158,8 @@ diện. Cách chạy: xem phần **Kiểm thử** trong [../README.md](../README
 
 ## 7. Lớp API và lộ trình
 
-`web/src/api.js` là **hợp đồng đã chốt** với backend, gồm 8 endpoint:
+`web/src/api.js` là **hợp đồng đã chốt** với backend, gồm 8 endpoint (backend triển khai thêm
+endpoint thứ 9 cho DeepSeek):
 
 ```text
 GET    /health                 -> { status: "ok" }
@@ -166,12 +167,17 @@ GET    /api/engines            -> tình trạng Blender + key AI
 POST   /api/portrait.png       <- { spec, size }            -> PNG
 POST   /api/glb                <- { spec, ...options }      -> GLB (Blender headless)
 POST   /api/portrait/ai        <- { spec, ...options }      -> { provider, imageUrl|imageBase64, prompt }
+POST   /api/ai/character       <- { spec }                  -> { description, motto, prompt, traits }
 GET    /api/library            -> [ nhân vật trên server ]
 POST   /api/library            <- { spec }
 DELETE /api/library/{id}
 ```
 
-Nguyên tắc khi viết backend:
+Backend **đã có trong repo** tại [`api/`](../api/) (FastAPI, cổng `8077`, 209 kiểm thử chạy bằng
+`python api/selftest.py`) — xem [api/README.md](../api/README.md) để biết chi tiết endpoint, hai
+chế độ nối Blender (headless hoặc addon cầu nối) và xử lý sự cố.
+
+Nguyên tắc đã áp dụng khi viết backend:
 
 1. **Không bắt web phụ thuộc API** — mọi tính năng lõi phải chạy khi API tắt.
 2. **Dùng lại `spec.threeD`** làm đầu vào dựng GLB; không định nghĩa tham số song song.
@@ -194,8 +200,8 @@ Nguyên tắc khi viết backend:
 
 | Hạn chế | Lý do / hướng xử lý |
 | --- | --- |
-| Chưa có backend `api/` | Lộ trình bước 3–4; web đã sẵn hợp đồng gọi API |
-| Chưa có model có rig (xương) | Bản three.js là model tĩnh + tư thế thở; rig sẽ do Blender dựng qua API |
+| Backend `api/` **không chạy trên Vercel** | Web tĩnh vẫn deploy Vercel bình thường; phần Blender/AI phải đặt trên VPS/Docker (xem [TRIEN_KHAI_VERCEL.md](TRIEN_KHAI_VERCEL.md)) |
+| Model three.js **không có xương** | Bản trong trình duyệt là model tĩnh + tư thế thở (nhanh, không cần server); muốn xương thì gọi `/api/glb` để Blender dựng bản rig 19 xương |
 | Thư viện chỉ nằm trong `localStorage` | Giới hạn dung lượng trình duyệt và tối đa **200 bản ghi** (`MAX_ITEMS`); mất khi xoá dữ liệu duyệt web; bước 6 sẽ đồng bộ lên server |
 | Chưa lưu ảnh/GLB vào `spec.media` | Trường `media` đã có sẵn trong card, dành cho bước tích hợp AI/Blender |
 | Chưa phát giọng nói (TTS) | `voice` (ttsVoice/timbre/pitch/speed) đã sinh sẵn, chờ bước 5 |
