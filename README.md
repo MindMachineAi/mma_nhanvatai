@@ -456,11 +456,11 @@ mma_nhanvatai/
 │  ├─ blender_addon/mma_bridge.py 525  addon cầu nối trong Blender (socket + allowlist + panel N)
 │  ├─ tools/glb_info.py        106  đọc GLB không cần Blender (chunk, skin, xương, hộp bao)
 │  ├─ selftest.py              550  209 kiểm thử API/engine/GLB thật (8 nhóm) · không cần mạng
-│  ├─ README.md                218  tài liệu backend: endpoint, 2 chế độ Blender, xử lý sự cố
+│  ├─ README.md                219  tài liệu backend: endpoint, 2 chế độ Blender, xử lý sự cố
 │  └─ requirements.txt          16  fastapi · uvicorn · pillow · requests · python-dotenv
 ├─ docs/
-│  ├─ KIEN_TRUC.md              211  kiến trúc, hợp đồng spec.threeD, chiến lược kiểm thử
-│  ├─ HUONG_DAN_SU_DUNG.md      143  hướng dẫn người dùng cuối từng bước
+│  ├─ KIEN_TRUC.md              217  kiến trúc, hợp đồng spec.threeD, chiến lược kiểm thử
+│  ├─ HUONG_DAN_SU_DUNG.md      154  hướng dẫn người dùng cuối từng bước
 │  ├─ TRIEN_KHAI_VERCEL.md      179  3 cách deploy, biến môi trường, xử lý sự cố
 │  └─ assets/banner.svg          76  banner của README (SVG, tự soạn)
 ├─ vercel.json                    6  khai báo build cho Vercel

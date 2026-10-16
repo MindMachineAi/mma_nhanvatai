@@ -202,6 +202,7 @@ dựng bằng Blender đứng đúng tỉ lệ, đúng chiều cao như trên we
 | `/api/glb` trả `detail` về Blender | `BLENDER_PATH` sai hoặc Blender chưa cài. `/api/engines` cho biết đường dẫn nó dò được |
 | Dựng GLB chậm (~10–30 s) | Mỗi lần là một tiến trình Blender mới. Muốn nhanh hơn hãy dùng addon cầu nối (chế độ 2) |
 | Cảnh báo `Mesh body is not valid, and may be exported wrongly` | **Vô hại**: mesh ghép từ hàng chục khối rời nên exporter nhắc. `build_character.py` đã tính lại pháp tuyến + `Mesh.validate()`; GLB vẫn có đủ mesh/skin/xương và three.js đọc tốt |
+| `glb_info.py` báo `joints: 20` dù rig chỉ có 19 xương | Bình thường: Blender tự thêm nút gốc **`neutral_bone`** vào skin (glTF yêu cầu mọi đỉnh có da đều có gốc), nên `skin.joints` = 19 xương + `neutral_bone`. Header `X-Model-bones` và kết quả dựng vẫn là **19** |
 | Ảnh AI không ra | Không có key nào ⇒ tự lùi về Pollinations (cần mạng). Xem `provider` trong kết quả để biết đã dùng cái nào |
 | DeepSeek báo `402` | Hết số dư tài khoản DeepSeek — **không ảnh hưởng** vẽ ảnh, chỉ mất phần viết lại prompt |
 | Cầu nối báo *“Blender đang ở chế độ nền (-b)”* | Đúng thiết kế: `-b` không có vòng lặp sự kiện nên không chạy được toán tử trên luồng chính. Mở Blender có giao diện, hoặc để backend dùng headless |
